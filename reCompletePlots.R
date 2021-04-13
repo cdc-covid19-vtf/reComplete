@@ -5,7 +5,7 @@ library(grid)
 
 
 
-reComplete <- readxl::read_excel(here::here("jurisdiction_reports",
+reComplete <- readxl::read_excel(here::here("reComplete",
                                             "RE_BiweeklyJurisdictionCompleteness.xlsx"))
 
 #want to convert this to a function; so one can just specify the column header
