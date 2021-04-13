@@ -15,7 +15,7 @@ reComplete <- reComplete %>%
 
 #want to convert this to a function; so one can just specify the column header
 #as input and create the two maps: Overall and Past two weeks. 
-rePlot <- function(dataFrame, colName, imageID) {
+rePlot <- function(dataFrame, colName, imageID, imageTitle) {
 
 pdf(file = here::here("03_figures", paste("REComplete", imageID,
                                          format(Sys.time(), "%Y-%m-%d"),
@@ -89,7 +89,10 @@ plot <- usmap::plot_usmap(data = dataFrame, values = "completeOne",
                              labels = c("< 20.0%", "20.1 - 40.0%",
                                         "40.1 - 60.0%", "60.1 - 80.0%",
                                         "> 80.0%", "NA"))+
-  theme(text = element_text(size=15, face = "bold"))
+  theme(text = element_text(size = 15, face = "bold"), 
+                            panel.border = element_rect(colour = "black", 
+                                                        fill = NA, size = 1))+
+  labs(title = imageTitle)
 
 plot$layers[[2]]$aes_params$size <- 4
 
@@ -143,11 +146,11 @@ addSquare <- function(name, inputData, xLoc, yLoc, jurID){
   popViewport()
 }
 
-addSquare(name = "DC", inputData = fedEnts, xLoc = 0.86, yLoc = 0.50, jurID = "DCA")
-addSquare(name = "BoP", inputData = fedEnts, xLoc = 0.86, yLoc = 0.40, jurID = "BP2")
-addSquare(name = "DoD", inputData = fedEnts, xLoc = 0.86, yLoc = 0.30, jurID = "DD2")
-addSquare(name = "IHS", inputData = fedEnts, xLoc = 0.86, yLoc = 0.20, jurID = "IH2")
-addSquare(name = "VHA", inputData = fedEnts, xLoc = 0.86, yLoc = 0.10, jurID = "VA2")
+addSquare(name = "DC", inputData = fedEnts, xLoc = 0.80, yLoc = 0.40, jurID = "DCA")
+addSquare(name = "BoP", inputData = fedEnts, xLoc = 0.80, yLoc = 0.33, jurID = "BP2")
+addSquare(name = "DoD", inputData = fedEnts, xLoc = 0.80, yLoc = 0.26, jurID = "DD2")
+addSquare(name = "IHS", inputData = fedEnts, xLoc = 0.80, yLoc = 0.19, jurID = "IH2")
+addSquare(name = "VHA", inputData = fedEnts, xLoc = 0.80, yLoc = 0.12, jurID = "VA2")
 
 addSquare(name = "VI", inputData = territory, xLoc = 0.80, yLoc = 0.05, jurID = "VIA")
 addSquare(name = "PW", inputData = territory, xLoc = 0.74, yLoc = 0.05, jurID = "RPA")
@@ -164,5 +167,7 @@ dev.off()
 
 }
 
-rePlot(dataFrame = reComplete, colName = "overall", imageID = "overall")
-rePlot(dataFrame = reComplete, colName = "twoWeeks", imageID = "twoWeeks")
+rePlot(dataFrame = reComplete, colName = "overall", imageID = "overall",
+       imageTitle = "Cumulative")
+rePlot(dataFrame = reComplete, colName = "twoWeeks", imageID = "twoWeeks",
+       imageTitle = "Last Two Weeks")
