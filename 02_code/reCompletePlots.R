@@ -3,9 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(grid)
 
-
-
-reComplete <- readxl::read_excel(here::here("reComplete/01_data",
+reComplete <- readxl::read_excel(here::here("01_data",
                                             "RE_BiweeklyJurisdictionCompleteness.xlsx"))
 
 #want to convert this to a function; so one can just specify the column header
