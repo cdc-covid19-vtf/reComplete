@@ -2,19 +2,24 @@ library(readxl)
 library(dplyr)
 library(ggplot2)
 library(grid)
+library(magrittr)
 
 reComplete <- readxl::read_excel(here::here("01_data",
                                             "RE_BiweeklyJurisdictionCompleteness.xlsx"))
 
 #want to convert this to a function; so one can just specify the column header
 #as input and create the two maps: Overall and Past two weeks. 
-#rePlot <- function(dataFrame, columnName) {
+#rePlot <- function(dataFrame) {
 
 #save the images as both png and pdf
-png(file = here::here(paste("REComplete", format(Sys.time(), "%Y-%m-%d"), ".png", sep="")),
+png(file = here::here("03_figures", paste("REComplete",
+                                          format(Sys.time(), "%Y-%m-%d"),
+                                          ".png", sep="")),
     width = 16, height = 8, units = "in", res = 100)
 
-pdf(file = here::here(paste("REComplete", format(Sys.time(), "%Y-%m-%d"), ".pdf", sep="")),
+pdf(file = here::here("03_figures",paste("REComplete",
+                                         format(Sys.time(), "%Y-%m-%d"),
+                                         ".pdf", sep="")),
     width = 16, height = 8)
 
 #convert column as numeric because it is read in as character
@@ -24,7 +29,7 @@ reComplete$`Valid, %...14`<- as.numeric(reComplete$`Valid, %...14`)
 reComplete <- reComplete %>%
   dplyr::mutate(`Valid, %...8`  = `Valid, %...8`*100) %>%
   dplyr::mutate(`Valid, %...14` = `Valid, %...14` *100)%>%
-  dplyr::rename(state = `Jurisdiction Name`)
+  dplyr::rename(state = "Jurisdiction Name")
 
 #provide splits based on percent for coloring. This is assuming that
 #the column names are always called `Valid, %...8` and `Valid, %...14`
@@ -60,8 +65,8 @@ reComplete <- reComplete %>%
 # state abbreviations as we make a 'rectangle' for it below. 
 #want - make the state abbreivations bold and if possible a white background
 plot <- usmap::plot_usmap(data = reComplete, values = "completeOne",
-                          exclude = c("DC"), color = "gray", labels = T,
-                          label_color = "black" )+
+                          exclude = c("DC"), size = 0.5, color = "black", 
+                          labels = T, label_color = "black" )+
   ggplot2::scale_fill_manual(name = "Percent\nComplete",
                              breaks = c("< 20.0%", "20.1 - 40.0%",
                                         "40.1 - 60.0%", "60.1 - 80.0%",
@@ -140,5 +145,6 @@ addSquare(name = "GU", inputData = territory, xLoc = 0.50, yLoc = 0.05, jurID = 
 addSquare(name = "FM", inputData = territory, xLoc = 0.44, yLoc = 0.05, jurID = "FMA")
 addSquare(name = "AS", inputData = territory, xLoc = 0.38, yLoc = 0.05, jurID = "ASA")
 
+dev.off()
 dev.off()
 #}
