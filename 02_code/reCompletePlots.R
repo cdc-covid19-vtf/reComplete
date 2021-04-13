@@ -20,7 +20,7 @@ rePlot <- function(dataFrame, colName, imageID, imageTitle) {
 pdf(file = here::here("03_figures", paste("REComplete", imageID,
                                          format(Sys.time(), "%Y-%m-%d"),
                                          "pdf", sep=".")),
-    width = 16, height = 8)
+    width = 12, height = 8)
 
 #save both png and pdf from stack overflow 
 #https://stackoverflow.com/questions/26232103
@@ -31,7 +31,7 @@ a<-dev.cur()
 png(file = here::here("03_figures", paste("REComplete", imageID,
                                           format(Sys.time(), "%Y-%m-%d"),
                                           "png", sep=".")),
-    width = 16, height = 8, units = "in", res = 100)
+    width = 12, height = 8, units = "in", res = 100)
 
 dev.control("enable")
 
@@ -90,6 +90,7 @@ plot <- usmap::plot_usmap(data = dataFrame, values = "completeOne",
                                         "40.1 - 60.0%", "60.1 - 80.0%",
                                         "> 80.0%", "NA"))+
   theme(text = element_text(size = 15, face = "bold"), 
+        legend.position = c(-0.04, 0.0), 
                             panel.border = element_rect(colour = "black", 
                                                         fill = NA, size = 1))+
   labs(title = imageTitle)
@@ -146,20 +147,20 @@ addSquare <- function(name, inputData, xLoc, yLoc, jurID){
   popViewport()
 }
 
-addSquare(name = "DC", inputData = fedEnts, xLoc = 0.80, yLoc = 0.40, jurID = "DCA")
-addSquare(name = "BoP", inputData = fedEnts, xLoc = 0.80, yLoc = 0.33, jurID = "BP2")
-addSquare(name = "DoD", inputData = fedEnts, xLoc = 0.80, yLoc = 0.26, jurID = "DD2")
-addSquare(name = "IHS", inputData = fedEnts, xLoc = 0.80, yLoc = 0.19, jurID = "IH2")
-addSquare(name = "VHA", inputData = fedEnts, xLoc = 0.80, yLoc = 0.12, jurID = "VA2")
+addSquare(name = "DC", inputData = fedEnts, xLoc = .90, yLoc = 0.40, jurID = "DCA")
+addSquare(name = "BoP", inputData = fedEnts, xLoc = .90, yLoc = 0.33, jurID = "BP2")
+addSquare(name = "DoD", inputData = fedEnts, xLoc = .90, yLoc = 0.26, jurID = "DD2")
+addSquare(name = "IHS", inputData = fedEnts, xLoc = .90, yLoc = 0.19, jurID = "IH2")
+addSquare(name = "VHA", inputData = fedEnts, xLoc = .90, yLoc = 0.12, jurID = "VA2")
 
-addSquare(name = "VI", inputData = territory, xLoc = 0.80, yLoc = 0.05, jurID = "VIA")
-addSquare(name = "PW", inputData = territory, xLoc = 0.74, yLoc = 0.05, jurID = "RPA")
-addSquare(name = "PR", inputData = territory, xLoc = 0.68, yLoc = 0.05, jurID = "PRA")
-addSquare(name = "MP", inputData = territory, xLoc = 0.62, yLoc = 0.05, jurID = "MPA")
-addSquare(name = "MH", inputData = territory, xLoc = 0.56, yLoc = 0.05, jurID = "MHA")
-addSquare(name = "GU", inputData = territory, xLoc = 0.50, yLoc = 0.05, jurID = "GUA")
-addSquare(name = "FM", inputData = territory, xLoc = 0.44, yLoc = 0.05, jurID = "FMA")
-addSquare(name = "AS", inputData = territory, xLoc = 0.38, yLoc = 0.05, jurID = "ASA")
+addSquare(name = "VI", inputData = territory, xLoc = .90, yLoc = 0.05, jurID = "VIA")
+addSquare(name = "PW", inputData = territory, xLoc = 0.84, yLoc = 0.05, jurID = "RPA")
+addSquare(name = "PR", inputData = territory, xLoc = 0.78, yLoc = 0.05, jurID = "PRA")
+addSquare(name = "MP", inputData = territory, xLoc = 0.72, yLoc = 0.05, jurID = "MPA")
+addSquare(name = "MH", inputData = territory, xLoc = 0.66, yLoc = 0.05, jurID = "MHA")
+addSquare(name = "GU", inputData = territory, xLoc = 0.60, yLoc = 0.05, jurID = "GUA")
+addSquare(name = "FM", inputData = territory, xLoc = 0.54, yLoc = 0.05, jurID = "FMA")
+addSquare(name = "AS", inputData = territory, xLoc = 0.48, yLoc = 0.05, jurID = "ASA")
 
 dev.copy(which = a)
 dev.off()
