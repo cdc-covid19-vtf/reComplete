@@ -4,67 +4,80 @@ library(ggplot2)
 library(grid)
 library(magrittr)
 
-reComplete <- readxl::read_excel(here::here("01_data",
-                                            "RE_BiweeklyJurisdictionCompleteness.xlsx"))
+reComplete <- readxl::read_excel(
+  here::here("01_data",
+             "RE_BiweeklyJurisdictionCompleteness.xlsx"))
+
+reComplete <- reComplete %>%
+  dplyr::rename(overall = `Valid, %...8`) %>%
+  dplyr::rename(twoWeeks = `Valid, %...14`)
+
 
 #want to convert this to a function; so one can just specify the column header
 #as input and create the two maps: Overall and Past two weeks. 
-#rePlot <- function(dataFrame) {
+rePlot <- function(dataFrame, colName, imageID) {
 
-#save the images as both png and pdf
-png(file = here::here("03_figures", paste("REComplete",
-                                          format(Sys.time(), "%Y-%m-%d"),
-                                          ".png", sep="")),
-    width = 16, height = 8, units = "in", res = 100)
-
-pdf(file = here::here("03_figures",paste("REComplete",
+pdf(file = here::here("03_figures", paste("REComplete", imageID,
                                          format(Sys.time(), "%Y-%m-%d"),
-                                         ".pdf", sep="")),
+                                         "pdf", sep=".")),
     width = 16, height = 8)
 
+#save both png and pdf from stack overflow 
+#https://stackoverflow.com/questions/26232103
+#also added dev.control('enable') along with a dev.copy call at end of script
+a<-dev.cur()
+  
+#saving the images as both png and pdf
+png(file = here::here("03_figures", paste("REComplete", imageID,
+                                          format(Sys.time(), "%Y-%m-%d"),
+                                          "png", sep=".")),
+    width = 16, height = 8, units = "in", res = 100)
+
+dev.control("enable")
+
 #convert column as numeric because it is read in as character
-reComplete$`Valid, %...14`<- as.numeric(reComplete$`Valid, %...14`)
+dataFrame$twoWeeks<- as.numeric(dataFrame$twoWeeks)
 
 #to get a percent and use plot_usmap by converting to column name 'state'
-reComplete <- reComplete %>%
-  dplyr::mutate(`Valid, %...8`  = `Valid, %...8`*100) %>%
-  dplyr::mutate(`Valid, %...14` = `Valid, %...14` *100)%>%
+dataFrame <- dataFrame %>%
+  dplyr::mutate(colName  = dataFrame[[colName]] * 100) %>%
+  dplyr::mutate(twoWeeks = twoWeeks * 100)%>%
   dplyr::rename(state = "Jurisdiction Name")
 
 #provide splits based on percent for coloring. This is assuming that
 #the column names are always called `Valid, %...8` and `Valid, %...14`
-reComplete <- reComplete %>%
+dataFrame <- dataFrame %>%
   mutate (completeOne = case_when (
-    `Valid, %...8` == 0.00 ~ "NA",
-    `Valid, %...8` < 20.0 ~ "< 20.0%",
-    `Valid, %...8` >= 20.1 & `Valid, %...8` <= 40.0 ~ "20.1 - 40.0%",
-    `Valid, %...8` >= 40.1 & `Valid, %...8`<= 60.0 ~ "40.1 - 60.0%",
-    `Valid, %...8` >= 60.1 & `Valid, %...8` < 80.0 ~ "60.1 - 80.0%",
-    `Valid, %...8` >= 80.0 ~ "> 80.0%") )
+    colName == 0.00 ~ "NA",
+    colName < 20.0 ~ "< 20.0%",
+    colName >= 20.1 & colName <= 40.0 ~ "20.1 - 40.0%",
+    colName >= 40.1 & colName<= 60.0 ~ "40.1 - 60.0%",
+    colName >= 60.1 & colName < 80.0 ~ "60.1 - 80.0%",
+    colName >= 80.0 ~ "> 80.0%") )
 
 #get the federal entities for plotting square boxes
-fedEnts <- reComplete %>%
+fedEnts <- dataFrame %>%
   filter_at(vars(Jurisdiction), any_vars(. %in% c("BP2",  "DCA",
                                                   "DD2", "IH2", "VA2")))  
 #get territories for plotting square boxes  
-territory <-  reComplete %>%
+territory <-  dataFrame %>%
   filter_at(vars(Jurisdiction), any_vars(. %in% c("ASA", "FMA", "GUA", "MHA",
                                                   "MPA", "PRA", "RPA", "VIA")))
 #replace New York State with New York
-reComplete$state[48]<- "New York"
+dataFrame$state[48]<- "New York"
 
 #convert state names to abbreivations for using plot_usmap
-reComplete$state <- state.abb[match(reComplete$state, state.name)]
+dataFrame$state <- state.abb[match(dataFrame$state, state.name)]
 
 #remove values that are NA, which includes federal entities, territories, and
 #pharmacies. This removal is done to use the plot_usmap function.
-reComplete <- reComplete %>%
+dataFrame <- dataFrame %>%
   filter(state!="NA")
 
 #this plot is colored by completeness and parsed by states; exclude DC in the
 # state abbreviations as we make a 'rectangle' for it below. 
 #want - make the state abbreivations bold and if possible a white background
-plot <- usmap::plot_usmap(data = reComplete, values = "completeOne",
+plot <- usmap::plot_usmap(data = dataFrame, values = "completeOne",
                           exclude = c("DC"), size = 0.5, color = "black", 
                           labels = T, label_color = "black" )+
   ggplot2::scale_fill_manual(name = "Percent\nComplete",
@@ -80,7 +93,7 @@ plot <- usmap::plot_usmap(data = reComplete, values = "completeOne",
 
 plot$layers[[2]]$aes_params$size <- 4
 
-plot
+print(plot)
 
 #define the colors to be able to use in the add Square funtion
 cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
@@ -145,6 +158,11 @@ addSquare(name = "GU", inputData = territory, xLoc = 0.50, yLoc = 0.05, jurID = 
 addSquare(name = "FM", inputData = territory, xLoc = 0.44, yLoc = 0.05, jurID = "FMA")
 addSquare(name = "AS", inputData = territory, xLoc = 0.38, yLoc = 0.05, jurID = "ASA")
 
+dev.copy(which = a)
 dev.off()
 dev.off()
-#}
+
+}
+
+rePlot(dataFrame = reComplete, colName = "overall", imageID = "overall")
+rePlot(dataFrame = reComplete, colName = "twoWeeks", imageID = "twoWeeks")
