@@ -10,7 +10,10 @@ The [code](https://github.com/cdc-covid19-vtf/reComplete/blob/master/02_code/reC
 # clone the repo. I tend to clone to my desktop. 
 git clone https://github.com/cdc-covid19-vtf/reComplete.git
 
-# open the code in R (reCompletePlots.R) and confirm path using the [here](https://here.r-lib.org/) package
+# open the code in R (reCompletePlots.R) and confirm path using the 
+<pre>
+<a href=https://here.r-lib.org/>Here</a>
+</pre> package
 # this should point into the reComplete repo (i.e. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
