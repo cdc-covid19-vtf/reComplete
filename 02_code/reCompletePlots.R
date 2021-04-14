@@ -150,7 +150,7 @@ rePlot <- function(dataFrame, colName, imageID, imageTitle) {
     # Visualize the vp_2 area
     grid.draw(rectGrob(gp = gpar(fill = col)))
     
-    grid.draw(textGrob(name,
+    grid.draw(textGrob(name, gp = gpar(fontsize = 20),
                        x = unit(0.5, 'npc'),
                        y = unit(0.5, 'npc')))
     
