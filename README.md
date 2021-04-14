@@ -11,8 +11,9 @@ The [code](https://github.com/cdc-covid19-vtf/reComplete/blob/master/02_code/reC
 git clone https://github.com/cdc-covid19-vtf/reComplete.git
 
 # open the code in R (reCompletePlots.R) and confirm path using the 
+
 <pre>
-<a href="https://here.r-lib.org"/>Here</a>
+<a href="https://lodash.com/docs#assign" title="assign documentation">assign</a>({ 'a': 1 }, { 'b': 2 }, { 'c': 3 });
 </pre> package
 # this should point into the reComplete repo (i.e. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
