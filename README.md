@@ -13,8 +13,14 @@ git clone https://github.com/cdc-covid19-vtf/reComplete.git
 # open the code in R (reCompletePlots.R) and confirm path using the 
 
 <pre>
+import { assign, map } from '<a href="https://www.npmjs.com/package/lodash" title="Lodash on npm">lodash</a>';
+
 <a href="https://lodash.com/docs#assign" title="assign documentation">assign</a>({ 'a': 1 }, { 'b': 2 }, { 'c': 3 });
-</pre> package
+// → { 'a': 1, 'b': 2, 'c': 3 } 
+<a href="https://lodash.com/docs#map" title="map documentation">map</a>([1, 2, 3], function(n) { return n * 3; });
+// → [3, 6, 9] 
+</pre>
+
 # this should point into the reComplete repo (i.e. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
