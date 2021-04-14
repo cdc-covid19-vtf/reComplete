@@ -12,7 +12,7 @@ git clone https://github.com/cdc-covid19-vtf/reComplete.git
 
 # open the code in R (reCompletePlots.R) and confirm path using the 
 <pre>
-<a href=https://here.r-lib.org/>Here</a>
+<a href="https://here.r-lib.org"/>Here</a>
 </pre> package
 # this should point into the reComplete repo (i.e. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
