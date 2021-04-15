@@ -17,6 +17,9 @@ reComplete <- reComplete %>%
   dplyr::rename(overall = `Valid, %...8`) %>%
   dplyr::rename(twoWeeks = `Valid, %...14`)
 
+#check tomorrow
+reComplete[reComplete=="N/A"] <- "NA"
+
 #convert column as numeric because it is read in as character
 reComplete$twoWeeks<- as.numeric(reComplete$twoWeeks)
 
@@ -96,9 +99,10 @@ reComplete$overall <- as.factor(reComplete$overall)
 reComplete$twoWeeks <- as.factor(reComplete$twoWeeks)
 
 
-reComplete[ reComplete == "NA" ] <- NA
-ents[ ents == "NA" ] <- NA
-
+ #reComplete[ reComplete == "NA" ] <- NA
+ 
+#ents$completeTwo <- as.factor(ents$completeTwo)
+ 
 #define the colors to be able to use in the add_Square funtion
 cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
           "40.1 - 60.0%" = "#4084c2", "60.1 - 80.0%"  = "#2d50ba",
@@ -136,7 +140,16 @@ addOverall <- function(name, xLoc, yLoc, jurID){
            "> 80.0%"){
     col = "#1c1b96"
   }
-  else {col = "#f8f8f8"}
+  else if(ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
+          "NA")
+    {
+    col = "#f8f8f8"
+    }
+  else {
+    #skip
+  }
+    
+    
   
   #visualize the vp area
   grid.draw(rectGrob(gp = gpar(fill = col)))
