@@ -5,6 +5,27 @@ library(grid)
 library(magrittr)
 library(cowplot)
 
+#created pdf image that will be located in the 03_figures sub-directory
+#imageID, is some unique identifier that the user can specify. This is to 
+#differentiate between the overall and twoWeeks plots  
+pdf(file = here::here("03_figures", paste("REComplete_Combined",
+                                          format(Sys.time(), "%Y-%m-%d"),
+                                          "pdf", sep=".")),
+    width = 15, height = 10)
+
+#how to save both png and pdf from stack overflow 
+#https://stackoverflow.com/questions/26232103
+#also added dev.control('enable') along with a dev.copy call at end of script
+a<-dev.cur()
+
+#save the images as png
+png(file = here::here("03_figures", paste("REComplete_Combined",
+                                          format(Sys.time(), "%Y-%m-%d"),
+                                          "png", sep=".")),
+    width = 15, height = 10, units = "in", res = 100)
+
+dev.control("enable")
+
 #skip the first three rows, which is extra information. 
 #this assumes the data is the first tab; if not then specify the tab 
 reComplete <- readxl::read_excel(
@@ -17,7 +38,8 @@ reComplete <- reComplete %>%
   dplyr::rename(overall = `Valid, %...8`) %>%
   dplyr::rename(twoWeeks = `Valid, %...14`)
 
-#check tomorrow
+#convert this value to NA; all NA's need to be the same
+#to be able to use that for color coding. 
 reComplete[reComplete=="N/A"] <- "NA"
 
 #convert column as numeric because it is read in as character
@@ -55,27 +77,27 @@ ents <- dplyr::bind_rows(fedEnts, territory)
 #do the same thing (i.e. overall and twoWeeks). But I could not get it to 
 #do this - blerg 
 overall <- function(dataFrame) {
-dataFrame <- dataFrame %>%
-  mutate (completeOverall = case_when (
-    overall == 0.00 ~ "NA",
-    overall < 20.0 ~ "< 20.0%",
-    overall >= 20.1 & overall <= 40.0 ~ "20.1 - 40.0%",
-    overall >= 40.1 & overall<= 60.0 ~ "40.1 - 60.0%",
-    overall >= 60.1 & overall < 80.0 ~ "60.1 - 80.0%",
-    overall >= 80.0 ~ "> 80.0%") )
-return(dataFrame)
+  dataFrame <- dataFrame %>%
+    mutate (completeOverall = case_when (
+      overall == 0.00 ~ "NA",
+      overall < 20.0 ~ "< 20.0%",
+      overall >= 20.1 & overall <= 40.0 ~ "20.1 - 40.0%",
+      overall >= 40.1 & overall<= 60.0 ~ "40.1 - 60.0%",
+      overall >= 60.1 & overall < 80.0 ~ "60.1 - 80.0%",
+      overall >= 80.0 ~ "> 80.0%") )
+  return(dataFrame)
 }
 
 twoWeeks <- function(dataFrame){
-dataFrame <- dataFrame %>%
-  mutate (completeTwo = case_when (
-    twoWeeks == 0.00 ~ "NA",
-    twoWeeks < 20.0 ~ "< 20.0%",
-    twoWeeks >= 20.1 & twoWeeks <= 40.0 ~ "20.1 - 40.0%",
-    twoWeeks >= 40.1 & twoWeeks<= 60.0 ~ "40.1 - 60.0%",
-    twoWeeks >= 60.1 & twoWeeks < 80.0 ~ "60.1 - 80.0%",
-    twoWeeks >= 80.0 ~ "> 80.0%") )
-return(dataFrame)
+  dataFrame <- dataFrame %>%
+    mutate (completeTwo = case_when (
+      twoWeeks == 0.00 ~ "NA",
+      twoWeeks < 20.0 ~ "< 20.0%",
+      twoWeeks >= 20.1 & twoWeeks <= 40.0 ~ "20.1 - 40.0%",
+      twoWeeks >= 40.1 & twoWeeks<= 60.0 ~ "40.1 - 60.0%",
+      twoWeeks >= 60.1 & twoWeeks < 80.0 ~ "60.1 - 80.0%",
+      twoWeeks >= 80.0 ~ "> 80.0%") )
+  return(dataFrame)
 }
 
 #run functions to make new column
@@ -98,11 +120,9 @@ reComplete <- reComplete %>%
 reComplete$overall <- as.factor(reComplete$overall)
 reComplete$twoWeeks <- as.factor(reComplete$twoWeeks)
 
+#convert to NA to character string 
+reComplete[ reComplete == "NA" ] <- NA
 
- #reComplete[ reComplete == "NA" ] <- NA
- 
-#ents$completeTwo <- as.factor(ents$completeTwo)
- 
 #define the colors to be able to use in the add_Square funtion
 cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
           "40.1 - 60.0%" = "#4084c2", "60.1 - 80.0%"  = "#2d50ba",
@@ -140,16 +160,9 @@ addOverall <- function(name, xLoc, yLoc, jurID){
            "> 80.0%"){
     col = "#1c1b96"
   }
-  else if(ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
-          "NA")
-    {
-    col = "#f8f8f8"
-    }
   else {
-    #skip
+    col = "#f8f8f8"
   }
-    
-    
   
   #visualize the vp area
   grid.draw(rectGrob(gp = gpar(fill = col)))
@@ -190,7 +203,9 @@ addTwo <- function(name, xLoc, yLoc, jurID){
            "> 80.0%"){
     col = "#1c1b96"
   }
-  else {col = "#f8f8f8"}
+  else {
+    col = "#f8f8f8"
+  }
   
   #visualize the vp area
   grid.draw(rectGrob(gp = gpar(fill = col)))
@@ -240,24 +255,24 @@ rePlot <- function(dataFrame, colName, imageTitle) {
 #call the function and make the plots
 p1 <- rePlot(dataFrame = reComplete, colName = "completeOverall", 
              imageTitle = "Cumulative")
-p1 <- p1 + theme(legend.position = "none")
 
 p2 <- rePlot(dataFrame = reComplete, colName = "completeTwo", 
-        imageTitle = "Last Two Weeks")
+             imageTitle = "Last Two Weeks")
 
+#combine the plots with cowplot
 prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
                            p2 + theme(legend.position = "none"),
                            align = 'h')
 
+#add legend
 legend <- cowplot::get_legend(p1 +
-                                theme(legend.position = c(0.2, 0.75), 
+                                theme(legend.position = c(0.35, 0.85), 
                                       legend.direction = "horizontal"))
-
+#display plot
 plot_grid(prow, legend, ncol = 1, rel_heights = c(2,1))
 
 
-#call addSquare function to make all of the  squares
-#federal entities 
+#call addOverall function to make all of the squares federal entities 
 addOverall(name = "DC", xLoc = .47, yLoc = 0.575, jurID = "DCA")
 addOverall(name = "BoP", xLoc = .47, yLoc = 0.535, jurID = "BP2")
 addOverall(name = "DoD", xLoc = .47, yLoc = 0.495, jurID = "DD2")
@@ -274,23 +289,25 @@ addOverall(name = "GU", xLoc = 0.260, yLoc = 0.415, jurID = "GUA")
 addOverall(name = "FM", xLoc = 0.225, yLoc = 0.415, jurID = "FMA")
 addOverall(name = "AS", xLoc = 0.190, yLoc = 0.415, jurID = "ASA")
 
-
-addTwo(name = "DC", xLoc = .97, yLoc = 0.51, jurID = "DCA")
-addTwo(name = "BoP", xLoc = .97, yLoc = 0.47, jurID = "BP2")
-addTwo(name = "DoD", xLoc = .97, yLoc = 0.43, jurID = "DD2")
-addTwo(name = "IHS", xLoc = .97, yLoc = 0.39, jurID = "IH2")
-addTwo(name = "VHA", xLoc = .97, yLoc = 0.35, jurID = "VA2")
+#call addTwo function to make squares for federal ents on last twoo week plot
+addTwo(name = "DC", xLoc = .97, yLoc = 0.575, jurID = "DCA")
+addTwo(name = "BoP", xLoc = .97, yLoc = 0.535, jurID = "BP2")
+addTwo(name = "DoD", xLoc = .97, yLoc = 0.495, jurID = "DD2")
+addTwo(name = "IHS", xLoc = .97, yLoc = 0.455, jurID = "IH2")
+addTwo(name = "VHA", xLoc = .97, yLoc = 0.415, jurID = "VA2")
 
 #state territories
-addTwo(name = "VI", xLoc = .935, yLoc = 0.35, jurID = "VIA")
-addTwo(name = "PW", xLoc = 0.90, yLoc = 0.35, jurID = "RPA")
-addTwo(name = "PR", xLoc = 0.865, yLoc = 0.35, jurID = "PRA")
-addTwo(name = "MP", xLoc = 0.830, yLoc = 0.35, jurID = "MPA")
-addTwo(name = "MH", xLoc = 0.795, yLoc = 0.35, jurID = "MHA")
-addTwo(name = "GU", xLoc = 0.760, yLoc = 0.35, jurID = "GUA")
-addTwo(name = "FM", xLoc = 0.725, yLoc = 0.35, jurID = "FMA")
-addTwo(name = "AS", xLoc = 0.690, yLoc = 0.35, jurID = "ASA")
+addTwo(name = "VI", xLoc = .935, yLoc = 0.415, jurID = "VIA")
+addTwo(name = "PW", xLoc = 0.90, yLoc = 0.415, jurID = "RPA")
+addTwo(name = "PR", xLoc = 0.865, yLoc = 0.415, jurID = "PRA")
+addTwo(name = "MP", xLoc = 0.830, yLoc = 0.415, jurID = "MPA")
+addTwo(name = "MH", xLoc = 0.795, yLoc = 0.415, jurID = "MHA")
+addTwo(name = "GU", xLoc = 0.760, yLoc = 0.415, jurID = "GUA")
+addTwo(name = "FM", xLoc = 0.725, yLoc = 0.415, jurID = "FMA")
+addTwo(name = "AS", xLoc = 0.690, yLoc = 0.415, jurID = "ASA")
 
-
-
+#to allow both files to be saved. 
+dev.copy(which = a)
+dev.off()
+dev.off()
 
