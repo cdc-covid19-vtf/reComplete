@@ -117,7 +117,8 @@ rePlot <- function(dataFrame, colName, imageID, imageTitle) {
           text = element_text(size = 15, face = "bold"), 
           legend.position = c(-0.04, 0.0), 
           panel.border = element_rect(colour = "black", 
-                                      fill = NA, size = 1))
+                                      fill = NA, size = 1),
+          )
   
   # convert the state abbreviations to a different size. This is where I got
   # stuck; as I could not figure out how to adjust the state abbreviations
