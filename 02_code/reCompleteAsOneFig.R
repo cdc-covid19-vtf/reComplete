@@ -4,43 +4,40 @@ library(ggplot2)
 library(grid)
 library(magrittr)
 library(cowplot)
+library(stringr)
 
 #created pdf image that will be located in the 03_figures sub-directory
 #imageID, is some unique identifier that the user can specify. This is to 
 #differentiate between the overall and twoWeeks plots  
-pdf(file = here::here("03_figures", paste("REComplete_Combined",
-                                          format(Sys.time(), "%Y-%m-%d"),
-                                          "pdf", sep=".")),
-    width = 15, height = 10)
-
-#how to save both png and pdf from stack overflow 
-#https://stackoverflow.com/questions/26232103
-#also added dev.control('enable') along with a dev.copy call at end of script
-a<-dev.cur()
-
-#save the images as png
-png(file = here::here("03_figures", paste("REComplete_Combined",
-                                          format(Sys.time(), "%Y-%m-%d"),
-                                          "png", sep=".")),
-    width = 15, height = 10, units = "in", res = 100)
-
-dev.control("enable")
+# pdf(file = here::here("03_figures", paste("REComplete_Combined",
+#                                           format(Sys.time(), "%Y-%m-%d"),
+#                                           "pdf", sep=".")),
+#     width = 15, height = 10)
+# 
+# #how to save both png and pdf from stack overflow 
+# #https://stackoverflow.com/questions/26232103
+# #also added dev.control('enable') along with a dev.copy call at end of script
+# a<-dev.cur()
+# 
+# #save the images as png
+# png(file = here::here("03_figures", paste("REComplete_Combined",
+#                                           format(Sys.time(), "%Y-%m-%d"),
+#                                           "png", sep=".")),
+#     width = 15, height = 10, units = "in", res = 100)
+# 
+# dev.control("enable")
 
 #skip the first three rows, which is extra information. 
 #this assumes the data is the first tab; if not then specify the tab 
 reComplete <- readxl::read_excel(
   here::here("01_data",
-             "RE_BiweeklyJurisdictionCompleteness.xlsx"), skip = 3)
+             "Previous_RE_BiweeklyJurisdictionCompleteness.xlsx"), skip = 3)
 
 #I do this for my own sanity, because I had a hard time remembering which were
 #the data columns of interest. One could skip this step. 
 reComplete <- reComplete %>%
   dplyr::rename(overall = `Valid, %...8`) %>%
   dplyr::rename(twoWeeks = `Valid, %...14`)
-
-#convert this value to NA; all NA's need to be the same
-#to be able to use that for color coding. 
-reComplete[reComplete=="N/A"] <- "NA"
 
 #convert column as numeric because it is read in as character
 reComplete$twoWeeks<- as.numeric(reComplete$twoWeeks)
@@ -50,6 +47,7 @@ reComplete <- reComplete %>%
   dplyr::mutate(overall  = overall * 100) %>%
   dplyr::mutate(twoWeeks = twoWeeks * 100)%>%
   dplyr::rename(state = "Jurisdiction Name")
+
 
 #switch California two week value to NA; they are not legally supposed 
 #report RE for the last two weeks. Other states include Minnesota, Texas, 
@@ -76,35 +74,27 @@ ents <- dplyr::bind_rows(fedEnts, territory)
 #should be exchanged out for parameters and thus not have two functions that
 #do the same thing (i.e. overall and twoWeeks). But I could not get it to 
 #do this - blerg 
-overall <- function(dataFrame) {
+
+
+overBin <- function(dataFrame, inputCol, colName){
+  input = enquo(inputCol)
+  col = enquo(colName)
+  
   dataFrame <- dataFrame %>%
-    mutate (completeOverall = case_when (
-      overall == 0.00 ~ "NA",
-      overall < 20.0 ~ "< 20.0%",
-      overall >= 20.1 & overall <= 40.0 ~ "20.1 - 40.0%",
-      overall >= 40.1 & overall<= 60.0 ~ "40.1 - 60.0%",
-      overall >= 60.1 & overall < 80.0 ~ "60.1 - 80.0%",
-      overall >= 80.0 ~ "> 80.0%") )
+    mutate(!!quo_name(col) := case_when (
+      (!!input) == 0.00 ~ "NA",
+      (!!input) < 20.00 ~ "< 20.0%",
+      (!!input) >= 20.0 & (!!input) < 40.0 ~ "20.0 - 40.0%",
+      (!!input) >= 40.0 & (!!input) < 60.0 ~ "40.0 - 60.0%",
+      (!!input) >= 60.0 & (!!input) < 80.0 ~ "60.0 - 80.0%",
+      (!!input) >= 80.0 ~ "> 80.0%") )
   return(dataFrame)
 }
 
-twoWeeks <- function(dataFrame){
-  dataFrame <- dataFrame %>%
-    mutate (completeTwo = case_when (
-      twoWeeks == 0.00 ~ "NA",
-      twoWeeks < 20.0 ~ "< 20.0%",
-      twoWeeks >= 20.1 & twoWeeks <= 40.0 ~ "20.1 - 40.0%",
-      twoWeeks >= 40.1 & twoWeeks<= 60.0 ~ "40.1 - 60.0%",
-      twoWeeks >= 60.1 & twoWeeks < 80.0 ~ "60.1 - 80.0%",
-      twoWeeks >= 80.0 ~ "> 80.0%") )
-  return(dataFrame)
-}
-
-#run functions to make new column
-reComplete <- overall(reComplete)
-reComplete <- twoWeeks(reComplete)
-ents <- overall(ents)
-ents <-twoWeeks(ents)
+reComplete <- overBin(dataFrame = reComplete, inputCol = overall, colName = completeOverall)
+reComplete <- overBin(dataFrame = reComplete, inputCol = twoWeeks, colName = completeTwo)
+ents <- overBin(dataFrame = ents, inputCol = overall, colName = completeOverall)
+ents <- overBin(dataFrame = ents, inputCol = twoWeeks, colName = completeTwo)
 
 #replace New York State with New York
 reComplete$state[48]<- "New York"
@@ -117,11 +107,9 @@ reComplete$state <- state.abb[match(reComplete$state, state.name)]
 reComplete <- reComplete %>%
   filter(state!="NA")
 
-reComplete$overall <- as.factor(reComplete$overall)
-reComplete$twoWeeks <- as.factor(reComplete$twoWeeks)
-
 #convert to NA to character string 
 reComplete[ reComplete == "NA" ] <- NA
+
 
 #define the colors to be able to use in the add_Square funtion
 cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
@@ -133,6 +121,7 @@ cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
 #are the locations for where the rectangle should be and jurID maps back to 
 #the jurisdiction id. 
 
+#pull out ents and overall for dataframe and column input name
 addOverall <- function(name, xLoc, yLoc, jurID){
   vP <- viewport(xLoc, yLoc, width = 0.03, height = 0.03)
   
@@ -145,15 +134,15 @@ addOverall <- function(name, xLoc, yLoc, jurID){
     col = "#b9e8eb"
   }
   else if(ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
-          "20.1 - 40.0%"){
+          "20.0 - 40.0%"){
     col = "#7cb5e5"
   }
   else if (ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
-           "40.1 - 60.0%"){
+           "40.0 - 60.0%"){
     col = "#4084c2"
   }
   else if (ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
-           "60.1 - 80.0%"){
+           "60.0 - 80.0%"){
     col = "#2d50ba"
   }
   else if (ents$completeOverall[which(ents$Jurisdiction == jurID)] ==
@@ -188,15 +177,15 @@ addTwo <- function(name, xLoc, yLoc, jurID){
     col = "#b9e8eb"
   }
   else if(ents$completeTwo[which(ents$Jurisdiction == jurID)] ==
-          "20.1 - 40.0%"){
+          "20.0 - 40.0%"){
     col = "#7cb5e5"
   }
   else if (ents$completeTwo[which(ents$Jurisdiction == jurID)] ==
-           "40.1 - 60.0%"){
+           "40.0 - 60.0%"){
     col = "#4084c2"
   }
   else if (ents$completeTwo[which(ents$Jurisdiction == jurID)] ==
-           "60.1 - 80.0%"){
+           "60.0 - 80.0%"){
     col = "#2d50ba"
   }
   else if (ents$completeTwo[which(ents$Jurisdiction == jurID)] ==
@@ -232,14 +221,10 @@ rePlot <- function(dataFrame, colName, imageTitle) {
                             labels = T, label_color = "black" )+
     ggplot2::scale_fill_manual(name = "Percent\nComplete",
                                values = c("#b9e8eb", "#7cb5e5", "#4084c2",
-                                          "#2d50ba", "#1c1b96",  "#f8f8f8"),
-                               labels = c("< 20.0%", "20.1 - 40.0%",
-                                          "40.1 - 60.0%", "60.1 - 80.0%",
-                                          "> 80.0%", "NA"))+
+                                          "#2d50ba", "#1c1b96", "white"))+
     labs(title = imageTitle)+
     theme(plot.title = element_text(size = 25, hjust = 0.5),
           text = element_text(size = 15, face = "bold"), 
-          legend.position = "none", 
           panel.border = element_rect(colour = "black", 
                                       fill = NA, size = 1))
   
@@ -252,9 +237,23 @@ rePlot <- function(dataFrame, colName, imageTitle) {
   return(plot)
 }
 
+
+reComplete$completeOverall <- factor(reComplete$completeOverall, 
+                                     levels = c("< 20.0%", "20.0 - 40.0%",
+                                                "40.0 - 60.0%", "60.0 - 80.0%",
+                                                "> 80.0%", "NA"))
+
+
+reComplete$completeTwo <- factor(reComplete$completeTwo, 
+                                     levels = c("< 20.0%", "20.0 - 40.0%",
+                                                "40.0 - 60.0%", "60.0 - 80.0%",
+                                                "> 80.0%", "NA"))
+
 #call the function and make the plots
 p1 <- rePlot(dataFrame = reComplete, colName = "completeOverall", 
              imageTitle = "Cumulative")
+
+
 
 p2 <- rePlot(dataFrame = reComplete, colName = "completeTwo", 
              imageTitle = "Last Two Weeks")
@@ -266,7 +265,7 @@ prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
 
 #add legend
 legend <- cowplot::get_legend(p1 +
-                                theme(legend.position = c(0.35, 0.85), 
+                                theme(legend.position = c(0.25, 0.85), 
                                       legend.direction = "horizontal"))
 #display plot
 plot_grid(prow, legend, ncol = 1, rel_heights = c(2,1))
@@ -306,8 +305,8 @@ addTwo(name = "GU", xLoc = 0.760, yLoc = 0.415, jurID = "GUA")
 addTwo(name = "FM", xLoc = 0.725, yLoc = 0.415, jurID = "FMA")
 addTwo(name = "AS", xLoc = 0.690, yLoc = 0.415, jurID = "ASA")
 
-#to allow both files to be saved. 
-dev.copy(which = a)
-dev.off()
-dev.off()
+# #to allow both files to be saved. 
+# dev.copy(which = a)
+# dev.off()
+# dev.off()
 
