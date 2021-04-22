@@ -5,6 +5,7 @@ library(grid)
 library(magrittr)
 library(cowplot)
 library(stringr)
+library(magick)
 
 #created pdf image that will be located in the 03_figures sub-directory
 #imageID, is some unique identifier that the user can specify. This is to
@@ -48,22 +49,24 @@ reComplete <- reComplete %>%
   dplyr::mutate(twoWeeks = twoWeeks * 100)%>%
   dplyr::rename(state = "Jurisdiction Name")
 
-
 #switch California two week value to NA; they are not legally supposed 
 #report RE for the last two weeks. Other states include Minnesota, Texas, 
-#and Vermont. In this example input data, MN, TX, and VT are already dealt
-#with, in the future you may need to extend this if statement if necessary. 
-#This uses the colName input parameter to distinguish if this is necessary
+#and Vermont. In the input data, MN, TX, and VT are already dealt with, in the 
+#future you may need to extend/check this if necessary. 
+
+#Note to self; I don't love that this is positional, could this be coded 
+#differently
 reComplete$twoWeeks[8] <- 0.00
 
 #get the federal entity rows for plotting square boxes
 fedEnts <- reComplete %>%
-  filter_at(vars(Jurisdiction), any_vars(. %in% c("BP2",  "DCA",
+  dplyr::filter_at(dplyr::vars(Jurisdiction), 
+                   dplyr::any_vars(. %in% c("BP2",  "DCA",
                                                   "DD2", "IH2", "VA2")))  
 #get territory rows for plotting square boxes  
 territory <-  reComplete %>%
-  filter_at(vars(Jurisdiction), 
-            any_vars(. %in% c("ASA", "FMA", "GUA", "MHA", "MPA", "PRA",
+  dplyr::filter_at(dplyr::vars(Jurisdiction), 
+            dplyr::any_vars(. %in% c("ASA", "FMA", "GUA", "MHA", "MPA", "PRA",
                               "RPA", "VIA")))
 
 #combine federal entitites and terroties
@@ -77,7 +80,7 @@ overBin <- function(dataFrame, inputCol, colName){
   col = enquo(colName)
   
   dataFrame <- dataFrame %>%
-    mutate(!!quo_name(col) := case_when (
+    dplyr::mutate(!!quo_name(col) := dplyr::case_when (
       (!!input) == 0.00 ~ "N/A",
       (!!input) < 20.00 ~ "< 20.0%",
       (!!input) >= 20.0 & (!!input) < 40.0 ~ "20.0 - 40.0%",
@@ -190,7 +193,8 @@ rePlot <- function(dataFrame, colName, imageTitle) {
           text = element_text(size = 15, face = "bold"), 
           panel.border = element_rect(colour = "black", 
                                       fill = NA, size = 1),
-          legend.position = "none",)
+          legend.position = "none",
+          plot.margin = unit(c(0, 0, 0, 0), "mm"))
   
   #convert the state abbreviations to a different size. This is where I got
   #stuck; as I could not figure out how to adjust the state abbreviations
@@ -212,12 +216,10 @@ reComplete$completeTwo <- factor(reComplete$completeTwo,
                                                 "> 80.0%", "N/A"))
 #call the function and make the plots
 p1 <- rePlot(dataFrame = reComplete, colName = "completeOverall", 
-             imageTitle = "Cumulative")
-
-
+             imageTitle = "12/15/2020 - 04/20/2021")
 
 p2 <- rePlot(dataFrame = reComplete, colName = "completeTwo", 
-             imageTitle = "Last Two Weeks")
+             imageTitle = "04/06/2021 - 04/20/2021")
 
 #combine the plots with cowplot
 prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
@@ -226,71 +228,84 @@ prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
 
 #add legend
 legend <- cowplot::get_legend(p1 +
-                                theme(legend.position = c(0.35, 0.85), 
+                                theme(legend.position = c(0.33, 1.2), 
                                       legend.direction = "horizontal"))
 #display plot
-plot_grid(prow, legend, ncol = 1, rel_heights = c(2,1))
-
+plot_grid(prow, legend, ncol = 1, rel_heights = c(5,1))
 
 #call addSquare function to make all of the squares federal entities 
 addSquare(name = "DC", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.575, jurID = "DCA")
+          xLoc = .47, yLoc = 0.445, jurID = "DCA")
 addSquare(name = "BoP", colName = 'completeOverall', 
-          xLoc = .47, yLoc = 0.535, jurID = "BP2")
+          xLoc = .47, yLoc = 0.415, jurID = "BP2")
 addSquare(name = "DoD", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.495, jurID = "DD2")
+          xLoc = .47, yLoc = 0.385, jurID = "DD2")
 addSquare(name = "IHS", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.455, jurID = "IH2")
+          xLoc = .47, yLoc = 0.355, jurID = "IH2")
 addSquare(name = "VHA", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.415, jurID = "VA2")
+          xLoc = .47, yLoc = 0.325, jurID = "VA2")
 
 #state territories
 addSquare(name = "VI", colName = 'completeOverall',
-          xLoc = .435, yLoc = 0.415, jurID = "VIA")
+          xLoc = .435, yLoc = 0.325, jurID = "VIA")
 addSquare(name = "PW", colName = 'completeOverall',
-          xLoc = 0.40, yLoc = 0.415, jurID = "RPA")
+          xLoc = 0.40, yLoc = 0.325, jurID = "RPA")
 addSquare(name = "PR", colName = 'completeOverall',
-          xLoc = 0.365, yLoc = 0.415, jurID = "PRA")
+          xLoc = 0.365, yLoc = 0.325, jurID = "PRA")
 addSquare(name = "MP", colName = 'completeOverall',
-          xLoc = 0.330, yLoc = 0.415, jurID = "MPA")
+          xLoc = 0.330, yLoc = 0.325, jurID = "MPA")
 addSquare(name = "MH", colName = 'completeOverall',
-          xLoc = 0.295, yLoc = 0.415, jurID = "MHA")
+          xLoc = 0.295, yLoc = 0.325, jurID = "MHA")
 addSquare(name = "GU", colName = 'completeOverall',
-          xLoc = 0.260, yLoc = 0.415, jurID = "GUA")
+          xLoc = 0.260, yLoc = 0.325, jurID = "GUA")
 addSquare(name = "FM", colName = 'completeOverall',
-          xLoc = 0.225, yLoc = 0.415, jurID = "FMA")
+          xLoc = 0.225, yLoc = 0.325, jurID = "FMA")
 addSquare(name = "AS", colName = 'completeOverall',
-          xLoc = 0.190, yLoc = 0.415, jurID = "ASA")
+          xLoc = 0.190, yLoc = 0.325, jurID = "ASA")
 
 #call addSquare function to make squares for federal ents on last twoo week plot
 addSquare(name = "DC",  colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.575, jurID = "DCA")
+          xLoc = .97, yLoc = 0.445, jurID = "DCA")
 addSquare(name = "BoP", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.535, jurID = "BP2")
+          xLoc = .97, yLoc = 0.415, jurID = "BP2")
 addSquare(name = "DoD", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.495, jurID = "DD2")
+          xLoc = .97, yLoc = 0.385, jurID = "DD2")
 addSquare(name = "IHS", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.455, jurID = "IH2")
+          xLoc = .97, yLoc = 0.355, jurID = "IH2")
 addSquare(name = "VHA", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.415, jurID = "VA2")
+          xLoc = .97, yLoc = 0.325, jurID = "VA2")
 
 #state territories
 addSquare(name = "VI", colName = 'completeTwo',
-          xLoc = .935, yLoc = 0.415, jurID = "VIA")
+          xLoc = .935, yLoc = 0.325, jurID = "VIA")
 addSquare(name = "PW", colName = 'completeTwo',
-          xLoc = 0.90, yLoc = 0.415, jurID = "RPA")
+          xLoc = 0.90, yLoc = 0.325, jurID = "RPA")
 addSquare(name = "PR", colName = 'completeTwo',
-          xLoc = 0.865, yLoc = 0.415, jurID = "PRA")
+          xLoc = 0.865, yLoc = 0.325, jurID = "PRA")
 addSquare(name = "MP", colName = 'completeTwo',
-          xLoc = 0.830, yLoc = 0.415, jurID = "MPA")
+          xLoc = 0.830, yLoc = 0.325, jurID = "MPA")
 addSquare(name = "MH", colName = 'completeTwo',
-          xLoc = 0.795, yLoc = 0.415, jurID = "MHA")
+          xLoc = 0.795, yLoc = 0.325, jurID = "MHA")
 addSquare(name = "GU", colName = 'completeTwo',
-          xLoc = 0.760, yLoc = 0.415, jurID = "GUA")
+          xLoc = 0.760, yLoc = 0.325, jurID = "GUA")
 addSquare(name = "FM", colName = 'completeTwo',
-          xLoc = 0.725, yLoc = 0.415, jurID = "FMA")
+          xLoc = 0.725, yLoc = 0.325, jurID = "FMA")
 addSquare(name = "AS", colName = 'completeTwo',
-          xLoc = 0.690, yLoc = 0.415, jurID = "ASA")
+          xLoc = 0.690, yLoc = 0.325, jurID = "ASA")
+
+#would like to use magick package to trim but the resolution is not great
+#for text 
+# gg_file <- paste0("RE_Complete_Combined.", 
+#                   format(Sys.time(), "%Y-%m-%d"), '.png')
+# 
+# suppressMessages(ggsave(gg_file, plot = last_plot(), 
+#                         width = 15, height = 10, units = "in"))
+# 
+# m_png <- image_read(gg_file)
+# 
+# m_png <- image_trim(m_png)
+# 
+# image_write(m_png, gg_file, format = "png")
 
 #to allow both files to be saved.
 dev.copy(which = a)
