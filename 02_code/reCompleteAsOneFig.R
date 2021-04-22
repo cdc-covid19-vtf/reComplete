@@ -164,7 +164,7 @@ addSquare <- function(name, colName, xLoc, yLoc, jurID){
   grid.draw(rectGrob(gp = gpar(fill = col)))
   
   #add text to the vp
-  grid.draw(textGrob(name, gp = gpar(fontsize = 8, fontface = "bold"),
+  grid.draw(textGrob(name, gp = gpar(fontsize = 12, fontface = "bold"),
                      x = unit(0.5, 'npc'),
                      y = unit(0.5, 'npc')))
   
@@ -190,7 +190,7 @@ rePlot <- function(dataFrame, colName, imageTitle) {
                                drop = FALSE)+
     labs(title = imageTitle)+
     theme(plot.title = element_text(size = 25, hjust = 0.5),
-          text = element_text(size = 15, face = "bold"), 
+          text = element_text(size = 15, face = "bold"), #for the legend
           panel.border = element_rect(colour = "black", 
                                       fill = NA, size = 1),
           legend.position = "none",
@@ -235,13 +235,13 @@ plot_grid(prow, legend, ncol = 1, rel_heights = c(5,1))
 
 #call addSquare function to make all of the squares federal entities 
 addSquare(name = "DC", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.445, jurID = "DCA")
+          xLoc = .47, yLoc = 0.465, jurID = "DCA")
 addSquare(name = "BoP", colName = 'completeOverall', 
-          xLoc = .47, yLoc = 0.415, jurID = "BP2")
+          xLoc = .47, yLoc = 0.43, jurID = "BP2")
 addSquare(name = "DoD", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.385, jurID = "DD2")
+          xLoc = .47, yLoc = 0.395, jurID = "DD2")
 addSquare(name = "IHS", colName = 'completeOverall',
-          xLoc = .47, yLoc = 0.355, jurID = "IH2")
+          xLoc = .47, yLoc = 0.36, jurID = "IH2")
 addSquare(name = "VHA", colName = 'completeOverall',
           xLoc = .47, yLoc = 0.325, jurID = "VA2")
 
@@ -265,13 +265,13 @@ addSquare(name = "AS", colName = 'completeOverall',
 
 #call addSquare function to make squares for federal ents on last twoo week plot
 addSquare(name = "DC",  colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.445, jurID = "DCA")
+          xLoc = .97, yLoc = 0.465, jurID = "DCA")
 addSquare(name = "BoP", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.415, jurID = "BP2")
+          xLoc = .97, yLoc = 0.43, jurID = "BP2")
 addSquare(name = "DoD", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.385, jurID = "DD2")
+          xLoc = .97, yLoc = 0.395, jurID = "DD2")
 addSquare(name = "IHS", colName = 'completeTwo',
-          xLoc = .97, yLoc = 0.355, jurID = "IH2")
+          xLoc = .97, yLoc = 0.36, jurID = "IH2")
 addSquare(name = "VHA", colName = 'completeTwo',
           xLoc = .97, yLoc = 0.325, jurID = "VA2")
 
