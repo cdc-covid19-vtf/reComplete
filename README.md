@@ -26,7 +26,7 @@ There are two versions of code available in 01_code sub-folder:
 # should point into the reComplete repo (e.g. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
-# read in the data - lines 7 - 13 
+# read in the data and the rePlot function - lines 7 - 22 
 
 # read in the function rePlot. The function takes 4 paramters: 
 *dataFrame*, *colName*, *imageID*, *imageTitle*
