@@ -7,9 +7,12 @@ library(cowplot)
 library(stringr)
 library(magick)
 
+#adjust date range each week. cRange is the cumulative date range and tRange
+#is the last two weeks. 
+cRange <- "12/15/2020 - 04/20/2021"
+tRange <- "04/06/2021 - 04/20/2021"
+
 #created pdf image that will be located in the 03_figures sub-directory
-#imageID, is some unique identifier that the user can specify. This is to
-#differentiate between the overall and twoWeeks plots
 pdf(file = here::here("03_figures", paste("REComplete_Combined",
                                           format(Sys.time(), "%Y-%m-%d"),
                                           "pdf", sep=".")),
@@ -18,6 +21,7 @@ pdf(file = here::here("03_figures", paste("REComplete_Combined",
 #how to save both png and pdf from stack overflow
 #https://stackoverflow.com/questions/26232103
 #also added dev.control('enable') along with a dev.copy call at end of script
+#for this capability
 a<-dev.cur()
 
 #save the images as png
@@ -29,13 +33,15 @@ png(file = here::here("03_figures", paste("REComplete_Combined",
 dev.control("enable")
 
 #skip the first three rows, which is extra information. 
-#this assumes the data is the first tab; if not then specify the tab 
+#this assumes the data is the first excel sheet; if not then specify the sheet 
 reComplete <- readxl::read_excel(
   here::here("01_data",
              "RE_BiweeklyJurisdictionCompleteness.xlsx"), skip = 3)
 
 #I do this for my own sanity, because I had a hard time remembering which were
-#the data columns of interest. One could skip this step. 
+#the data columns of interest. One could skip this step but would need to 
+#adjust anything with 'overall' and 'twoWeeks' to be 'Valid, %...8' and 
+#'Valid, %...14'
 reComplete <- reComplete %>%
   dplyr::rename(overall = `Valid, %...8`) %>%
   dplyr::rename(twoWeeks = `Valid, %...14`)
@@ -52,7 +58,8 @@ reComplete <- reComplete %>%
 #switch California two week value to NA; they are not legally supposed 
 #report RE for the last two weeks. Other states include Minnesota, Texas, 
 #and Vermont. In the input data, MN, TX, and VT are already dealt with, in the 
-#future you may need to extend/check this if necessary. 
+#future you may need to extend this if the other states are not NA coded for 
+#the last two weeks plot. 
 
 #Note to self; I don't love that this is positional, could this be coded 
 #differently
@@ -74,13 +81,13 @@ ents <- dplyr::bind_rows(fedEnts, territory)
 
 #function to add a column that bins the data for coloring for the last two weeks
 #this uses quasiquotation - quote some parts of an expression while evaluating
-#and then inserting the results of others (unquoting; e.g !!input)
+#and then inserting the results of others (or unquoting; e.g !!input)
 overBin <- function(dataFrame, inputCol, colName){
   input = enquo(inputCol)
   col = enquo(colName)
   
   dataFrame <- dataFrame %>%
-    dplyr::mutate(!!quo_name(col) := dplyr::case_when (
+    dplyr::mutate(!!(col) := dplyr::case_when (
       (!!input) == 0.00 ~ "N/A",
       (!!input) < 20.00 ~ "< 20.0%",
       (!!input) >= 20.0 & (!!input) < 40.0 ~ "20.0 - 40.0%",
@@ -100,7 +107,9 @@ ents <- overBin(dataFrame = ents, inputCol = overall,
 ents <- overBin(dataFrame = ents, inputCol = twoWeeks,
                 colName = completeTwo)
 
+
 #replace New York State with New York
+#note to self, again this is positional, which I don't love
 reComplete$state[48]<- "New York"
 
 #convert state names to abbreviations for using plot_usmap
@@ -109,17 +118,17 @@ reComplete$state <- state.abb[match(reComplete$state, state.name)]
 #remove values that are NA, which includes federal entities, territories, and
 #pharmacies. This removal is done to use the plot_usmap function.
 reComplete <- reComplete %>%
-  filter(state!="NA")
+  dplyr::filter(state!="NA")
 
-#convert to NA to character string 
+#convert NA to character string 
 reComplete[ reComplete == "NA" ] <- NA
 
-#define the colors to be able to use in the add_Square funtion
+#define the colors to be able to use in the add_Square function
 cols <- c("< 20.0%" = "#b9e8eb",  "20.1 - 40.0%" = "#7cb5e5",
           "40.1 - 60.0%" = "#4084c2", "60.1 - 80.0%"  = "#2d50ba",
           "> 80.0%" = "#1c1b96", "NA" = "#f8f8f8")
 
-#the inputs include the name to be displayed in the rectangle, the inputData
+#the functions inputs are the name to be displayed in the square, the inputData
 #as either the fedEnties or territories dataframe created above, xLoc and yLoc 
 #are the locations for where the rectangle should be and jurID maps back to 
 #the jurisdiction id while colName is either completeOverall or completeTwo 
@@ -172,9 +181,8 @@ addSquare <- function(name, colName, xLoc, yLoc, jurID){
   popViewport()
 }
 
-
 #as a function so one can just specify the dataFrame column header, and 
-#imageTitle as input parameters.This allows the creation of two maps: 
+#imageTitle as input parameters and ultimately creates two maps: 
 #Overall and Past two weeks. 
 rePlot <- function(dataFrame, colName, imageTitle) {
   
@@ -199,12 +207,13 @@ rePlot <- function(dataFrame, colName, imageTitle) {
   #convert the state abbreviations to a different size. This is where I got
   #stuck; as I could not figure out how to adjust the state abbreviations
   #in any other way. Need to do a bit more reading how to manipulate; does not
-  #seem to be standard ggplot manipulation...
-  plot$layers[[2]]$aes_params$size <- 2
+  #seem to be standard ggplot manipulation for teh usmap_plotusmap function
+  plot$layers[[2]]$aes_params$size <- 4
   
   return(plot)
 }
 
+#covert to factor with levels to correctly color code
 reComplete$completeOverall <- factor(reComplete$completeOverall,
                                      levels = c("< 20.0%", "20.0 - 40.0%",
                                                 "40.0 - 60.0%", "60.0 - 80.0%",
@@ -215,14 +224,12 @@ reComplete$completeTwo <- factor(reComplete$completeTwo,
                                                 "40.0 - 60.0%", "60.0 - 80.0%",
                                                 "> 80.0%", "N/A"))
 
-#need to add code to get the cumulative date range
-#along with the last two weeks
 #call the function and make the plots
 p1 <- rePlot(dataFrame = reComplete, colName = "completeOverall", 
-             imageTitle = "12/15/2020 - 04/20/2021")
+             imageTitle = cRange )
 
 p2 <- rePlot(dataFrame = reComplete, colName = "completeTwo", 
-             imageTitle = "04/06/2021 - 04/20/2021")
+             imageTitle = tRange)
 
 #combine the plots with cowplot
 prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
@@ -230,9 +237,12 @@ prow <- cowplot::plot_grid(p1 + theme(legend.position = "none"),
                            align = 'h')
 
 #add legend
+#could never get center justification programatically, have to code it with
+#legend.position
 legend <- cowplot::get_legend(p1 +
                                 theme(legend.position = c(0.33, 1.2), 
                                       legend.direction = "horizontal"))
+
 #display plot
 plot_grid(prow, legend, ncol = 1, rel_heights = c(5,1))
 
