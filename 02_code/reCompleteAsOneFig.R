@@ -214,6 +214,9 @@ reComplete$completeTwo <- factor(reComplete$completeTwo,
                                      levels = c("< 20.0%", "20.0 - 40.0%",
                                                 "40.0 - 60.0%", "60.0 - 80.0%",
                                                 "> 80.0%", "N/A"))
+
+#need to add code to get the cumulative date range
+#along with the last two weeks
 #call the function and make the plots
 p1 <- rePlot(dataFrame = reComplete, colName = "completeOverall", 
              imageTitle = "12/15/2020 - 04/20/2021")
