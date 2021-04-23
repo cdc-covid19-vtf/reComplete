@@ -32,7 +32,7 @@ dev.control("enable")
 #this assumes the data is the first tab; if not then specify the tab 
 reComplete <- readxl::read_excel(
   here::here("01_data",
-             "Previous_RE_BiweeklyJurisdictionCompleteness.xlsx"), skip = 3)
+             "RE_BiweeklyJurisdictionCompleteness.xlsx"), skip = 3)
 
 #I do this for my own sanity, because I had a hard time remembering which were
 #the data columns of interest. One could skip this step. 
