@@ -28,8 +28,8 @@ here::here()
 
 # read in the data and the rePlot function - lines 7 - 22 
 
-# read in the function rePlot. The function takes 4 paramters: 
-*dataFrame*, *colName*, *imageID*, *imageTitle*
+# The rePlot function takes 4 paramters: 
+       *dataFrame*, *colName*, *imageID*, *imageTitle*
 * dataFrame is the excel input file 
 * colName is either 'Valid, %...8'(overall) or  'Valid, %...14'(two weeks)
 * imageID - unique identifier for the plots (e.g. overall or two weeks)
