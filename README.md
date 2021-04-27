@@ -53,10 +53,6 @@ rePlot(dataFrame = reComplete, colName = "twoWeeks", imageID = "twoWeeks",
 # should point into the reComplete repo (e.g. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
-#adjust cRange and tRange to reflect cumulative date range and last two weeks. 
-cRange <- "12/15/2020 - 04/02/2021"
-tRange <- "04/06/2021 - 04/02/2021"
-
 # highlight all code and hit 'Run'
 # output images will be reComplete/03_figures
 

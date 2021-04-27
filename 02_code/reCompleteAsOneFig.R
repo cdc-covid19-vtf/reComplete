@@ -5,12 +5,14 @@ library(grid)
 library(magrittr)
 library(cowplot)
 library(stringr)
-library(magick)
+
+today <- paste0(format(Sys.Date(), "%m/%d/%Y"))
+lastTwo <- as.Date(today, "%m/%d/%Y") - 14
 
 #adjust date range each week. cRange is the cumulative date range and tRange
 #is the last two weeks. 
-cRange <- "12/15/2020 - 04/20/2021"
-tRange <- "04/06/2021 - 04/20/2021"
+cRange <- paste0("12/15/2020 - ", today)
+tRange <- paste0(format(lastTwo, "%m/%d/%Y"), " - ", today)
 
 #created pdf image that will be located in the 03_figures sub-directory
 pdf(file = here::here("03_figures", paste("REComplete_Combined",
