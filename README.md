@@ -26,6 +26,9 @@ There are two versions of code available in 01_code sub-folder:
 # should point into the reComplete repo (e.g. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
+#copy data into this directory
+~/Desktop/reComplete/01_data
+
 # read in the data and the rePlot function - lines 7 - 22 
 
 # The rePlot function takes 4 paramters: 
