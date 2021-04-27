@@ -56,6 +56,9 @@ rePlot(dataFrame = reComplete, colName = "twoWeeks", imageID = "twoWeeks",
 # should point into the reComplete repo (e.g. C:/Users/ptx4/Desktop/reComplete)
 here::here() 
 
+#copy data into this directory
+~/Desktop/reComplete/01_data
+
 # highlight all code and hit 'Run'
 # output images will be reComplete/03_figures
 
