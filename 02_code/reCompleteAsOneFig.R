@@ -65,7 +65,6 @@ reComplete <- reComplete %>%
 
 #Note to self; I don't love that this is positional, could this be coded 
 #differently
-reComplete$twoWeeks[8] <- 0.00
 
 #get the federal entity rows for plotting square boxes
 fedEnts <- reComplete %>%
