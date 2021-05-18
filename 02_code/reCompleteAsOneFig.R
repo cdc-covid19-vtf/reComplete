@@ -7,6 +7,8 @@ library(cowplot)
 library(stringr)
 
 today <- paste0(format(Sys.Date(), "%m/%d/%Y"))
+todayPDF <- as.Date(today, "%m/%d/%Y")
+#yesterday <- as.Date(today, "%m/%d/%Y") - 1; if needed to do it for prev day
 lastTwo <- as.Date(today, "%m/%d/%Y") - 14
 
 #adjust date range each week. cRange is the cumulative date range and tRange
@@ -16,7 +18,7 @@ tRange <- paste0(format(lastTwo, "%m/%d/%Y"), " - ", today)
 
 #created pdf image that will be located in the 03_figures sub-directory
 pdf(file = here::here("03_figures", paste("REComplete_Combined",
-                                          format(Sys.time(), "%Y-%m-%d"),
+                                          todayPDF,
                                           "pdf", sep=".")),
     width = 15, height = 10)
 
@@ -28,7 +30,7 @@ a<-dev.cur()
 
 #save the images as png
 png(file = here::here("03_figures", paste("REComplete_Combined",
-                                          format(Sys.time(), "%Y-%m-%d"),
+                                         todayPDF,
                                           "png", sep=".")),
     width = 15, height = 10, units = "in", res = 100)
 
@@ -61,10 +63,7 @@ reComplete <- reComplete %>%
 #report RE for the last two weeks. Other states include Minnesota, Texas, 
 #and Vermont. In the input data, MN, TX, and VT are already dealt with, in the 
 #future you may need to extend this if the other states are not NA coded for 
-#the last two weeks plot. 
-
-#Note to self; I don't love that this is positional, could this be coded 
-#differently
+#the last two weeks plot. c
 
 #get the federal entity rows for plotting square boxes
 fedEnts <- reComplete %>%
